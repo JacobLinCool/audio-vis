@@ -242,4 +242,4 @@ space = gr.Interface(
     description="Upload an audio file to visualize its features and optionally apply filters. Each visualization helps in understanding different aspects of the audio signal.",
 )
 
-space.launch()
+space.queue(status_update_rate=10.0, max_size=10).launch()

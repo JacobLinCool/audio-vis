@@ -1,0 +1,6 @@
+gradio
+librosa
+matplotlib
+numpy
+scipy
+pillow

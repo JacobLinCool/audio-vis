@@ -3,12 +3,18 @@ import os
 import librosa
 import librosa.display
 import numpy as np
+import matplotlib
+from matplotlib.font_manager import fontManager
 import matplotlib.pyplot as plt
 from scipy.signal import butter, lfilter
 from PIL import Image
 
 FILTER_UPPER_BOUND = 20000
 FILTER_LOWER_BOUND = 0
+
+# use ./fonts/NotoSansTC-Regular.ttf
+fontManager.addfont("fonts/NotoSansTC-Regular.ttf")
+matplotlib.rc("font", family="Noto Sans TC")
 
 
 def butter_filter(data: np.ndarray, cutoff: int, fs: int, btype: str, order=5):

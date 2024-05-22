@@ -94,6 +94,12 @@ with gr.Blocks() as app:
             label="Spectral Contrast: Difference in amplitude between peaks and valleys in a sound spectrum."
         )
 
+    with gr.Row():
+        tempo = gr.Image(label="Tempo: Estimated tempo of the audio signal.")
+        tempogram = gr.Image(
+            label="Tempogram: Localized autocorrelation of the onset strength envelope."
+        )
+
     btn.click(
         fn=analyze_audio,
         inputs=[audio, highpass, lowpass, bandpass_low, bandpass_high],
@@ -107,5 +113,7 @@ with gr.Blocks() as app:
             rms_energy,
             spectral_contrast,
             spectral_rolloff,
+            tempo,
+            tempogram,
         ],
     )

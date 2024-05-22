@@ -1,4 +1,5 @@
 import io
+import os
 import librosa
 import librosa.display
 import numpy as np
@@ -52,6 +53,7 @@ def analyze_audio(
     bandpass_low: int,
     bandpass_high: int,
 ):
+    filename = os.path.basename(file)
     y, sr = librosa.load(file)
     y = apply_filters(
         y, sr, highpass_cutoff, lowpass_cutoff, bandpass_low, bandpass_high
@@ -60,7 +62,7 @@ def analyze_audio(
     def plot_waveform(y: np.ndarray, sr: int) -> np.ndarray:
         plt.figure(figsize=(14, 5))
         librosa.display.waveshow(y, sr=sr)
-        plt.title("Waveform")
+        plt.title(f"Waveform ({filename})")
         plt.xlabel("Time")
         plt.ylabel("Amplitude")
         return plt_to_numpy(plt)
@@ -70,7 +72,7 @@ def analyze_audio(
         D = librosa.amplitude_to_db(np.abs(librosa.stft(y)), ref=np.max)
         librosa.display.specshow(D, sr=sr, x_axis="time", y_axis="log")
         plt.colorbar(format="%+2.0f dB")
-        plt.title("Spectrogram")
+        plt.title(f"Spectrogram ({filename})")
         return plt_to_numpy(plt)
 
     def plot_mfcc(y: np.ndarray, sr: int) -> np.ndarray:
@@ -78,14 +80,14 @@ def analyze_audio(
         plt.figure(figsize=(14, 5))
         librosa.display.specshow(mfccs, sr=sr, x_axis="time")
         plt.colorbar()
-        plt.title("MFCC")
+        plt.title(f"MFCC ({filename})")
         return plt_to_numpy(plt)
 
     def plot_zcr(y: np.ndarray) -> np.ndarray:
         zcr = librosa.feature.zero_crossing_rate(y=y)
         plt.figure(figsize=(14, 5))
         plt.plot(zcr[0])
-        plt.title("Zero Crossing Rate")
+        plt.title(f"Zero Crossing Rate ({filename})")
         plt.xlabel("Frames")
         plt.ylabel("Rate")
         return plt_to_numpy(plt)
@@ -96,9 +98,9 @@ def analyze_audio(
         t = librosa.frames_to_time(frames)
         plt.figure(figsize=(14, 5))
         plt.semilogy(t, spectral_centroids, label="Spectral centroid")
+        plt.title(f"Spectral Centroid ({filename})")
         plt.xlabel("Time")
         plt.ylabel("Hz")
-        plt.title("Spectral Centroid")
         return plt_to_numpy(plt)
 
     def plot_spectral_bandwidth(y: np.ndarray, sr: int) -> np.ndarray:
@@ -107,16 +109,16 @@ def analyze_audio(
         t = librosa.frames_to_time(frames)
         plt.figure(figsize=(14, 5))
         plt.semilogy(t, spectral_bandwidth, label="Spectral bandwidth")
+        plt.title(f"Spectral Bandwidth ({filename})")
         plt.xlabel("Time")
         plt.ylabel("Hz")
-        plt.title("Spectral Bandwidth")
         return plt_to_numpy(plt)
 
     def plot_rms(y: np.ndarray) -> np.ndarray:
         rms = librosa.feature.rms(y=y)[0]
         plt.figure(figsize=(14, 5))
         plt.plot(rms)
-        plt.title("RMS Energy")
+        plt.title(f"RMS Energy ({filename})")
         plt.xlabel("Frames")
         plt.ylabel("RMS")
         return plt_to_numpy(plt)
@@ -126,7 +128,7 @@ def analyze_audio(
         plt.figure(figsize=(14, 5))
         librosa.display.specshow(spectral_contrast, sr=sr, x_axis="time")
         plt.colorbar()
-        plt.title("Spectral Contrast")
+        plt.title(f"Spectral Contrast ({filename})")
         return plt_to_numpy(plt)
 
     def plot_spectral_rolloff(y: np.ndarray, sr: int) -> np.ndarray:
@@ -137,7 +139,26 @@ def analyze_audio(
         plt.semilogy(t, spectral_rolloff, label="Spectral rolloff")
         plt.xlabel("Time")
         plt.ylabel("Hz")
-        plt.title("Spectral Rolloff")
+        plt.title(f"Spectral Rolloff ({filename})")
+        return plt_to_numpy(plt)
+
+    def plot_tempo(onset_env: np.ndarray, sr: int) -> np.ndarray:
+        dtempo = librosa.feature.tempo(onset_envelope=onset_env, sr=sr, aggregate=None)
+        frames = range(len(dtempo))
+        t = librosa.frames_to_time(frames, sr=sr)
+        plt.figure(figsize=(14, 5))
+        plt.plot(t, dtempo, label="Tempo")
+        plt.title(f"Tempo ({filename})")
+        plt.xlabel("Time")
+        plt.ylabel("Tempo")
+        return plt_to_numpy(plt)
+
+    def plot_tempogram(onset_env: np.ndarray, sr: int) -> np.ndarray:
+        tempogram = librosa.feature.tempogram(onset_envelope=onset_env, sr=sr)
+        plt.figure(figsize=(14, 5))
+        librosa.display.specshow(tempogram, sr=sr, x_axis="time")
+        plt.colorbar()
+        plt.title(f"Tempogram ({filename})")
         return plt_to_numpy(plt)
 
     waveform = plot_waveform(y, sr)
@@ -149,6 +170,9 @@ def analyze_audio(
     rms = plot_rms(y)
     spectral_contrast = plot_spectral_contrast(y, sr)
     spectral_rolloff = plot_spectral_rolloff(y, sr)
+    onset_env = librosa.onset.onset_strength(y=y, sr=sr)
+    tempo = plot_tempo(onset_env, sr)
+    tempogram = plot_tempogram(onset_env, sr)
 
     return (
         waveform,
@@ -160,4 +184,6 @@ def analyze_audio(
         rms,
         spectral_contrast,
         spectral_rolloff,
+        tempo,
+        tempogram,
     )
